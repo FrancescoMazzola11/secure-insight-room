@@ -15,155 +15,51 @@ import {
 import { Plus, Search, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Mock data
+// Mock data - 4 main data rooms
 const initialDataRooms: DataRoom[] = [
-  // 1. Financial
   {
-    id: "1.1",
-    name: "1.1 General Information",
-    description: "Informazioni generali finanziarie e panoramica aziendale",
-    tags: ["Financial", "General"],
+    id: "financial",
+    name: "Financial",
+    description: "Documenti finanziari, bilanci e analisi economiche",
+    tags: ["Financial"],
     lastModified: "2 hours ago",
-    documentCount: 15,
-    userCount: 8,
-    role: "Creator"
-  },
-  {
-    id: "1.2",
-    name: "1.2 Income Statement",
-    description: "Conto economico e analisi dei ricavi e costi",
-    tags: ["Financial", "Income"],
-    lastModified: "3 hours ago",
-    documentCount: 22,
-    userCount: 6,
-    role: "Creator"
-  },
-  {
-    id: "1.3",
-    name: "1.3 Balance Sheet",
-    description: "Stato patrimoniale e situazione finanziaria",
-    tags: ["Financial", "Balance"],
-    lastModified: "5 hours ago",
-    documentCount: 18,
-    userCount: 7,
-    role: "Creator"
-  },
-  // 2. Legal
-  {
-    id: "2.1",
-    name: "2.1 Company Data",
-    description: "Dati societari, statuto e governance aziendale",
-    tags: ["Legal", "Company"],
-    lastModified: "Yesterday",
-    documentCount: 32,
+    documentCount: 55,
     userCount: 12,
-    role: "Editor"
+    role: "Creator"
   },
   {
-    id: "2.2",
-    name: "2.2 Shareholdings",
-    description: "Partecipazioni societarie e struttura azionaria",
-    tags: ["Legal", "Shareholdings"],
+    id: "legal",
+    name: "Legal",
+    description: "Documenti legali, contratti e adempimenti normativi",
+    tags: ["Legal"],
     lastModified: "Yesterday",
-    documentCount: 28,
-    userCount: 9,
+    documentCount: 234,
+    userCount: 18,
     role: "Editor"
   },
   {
-    id: "2.3",
-    name: "2.3 Real Estate Properties",
-    description: "Proprietà immobiliari e diritti reali",
-    tags: ["Legal", "Real Estate"],
-    lastModified: "2 days ago",
-    documentCount: 45,
+    id: "tax",
+    name: "Tax",
+    description: "Documentazione fiscale e adempimenti tributari",
+    tags: ["Tax"],
+    lastModified: "1 week ago",
+    documentCount: 106,
     userCount: 8,
     role: "Contributor"
   },
   {
-    id: "2.4",
-    name: "2.4 Permits, Authorizations, Licenses and Concessions",
-    description: "Permessi, autorizzazioni, licenze e concessioni",
-    tags: ["Legal", "Permits"],
-    lastModified: "2 days ago",
-    documentCount: 67,
-    userCount: 11,
-    role: "Contributor"
-  },
-  {
-    id: "2.5",
-    name: "2.5 Insurance",
-    description: "Polizze assicurative e coperture",
-    tags: ["Legal", "Insurance"],
-    lastModified: "3 days ago",
-    documentCount: 24,
-    userCount: 5,
-    role: "Viewer"
-  },
-  {
-    id: "2.6",
-    name: "2.6 Financial Contracts",
-    description: "Contratti finanziari e accordi economici",
-    tags: ["Legal", "Contracts"],
-    lastModified: "3 days ago",
-    documentCount: 38,
-    userCount: 14,
-    role: "Editor"
-  },
-  // 3. Tax
-  {
-    id: "3.1",
-    name: "3.1 IRES e IRAP",
-    description: "Documentazione fiscale IRES e IRAP",
-    tags: ["Tax", "IRES", "IRAP"],
-    lastModified: "1 week ago",
-    documentCount: 42,
-    userCount: 6,
-    role: "Viewer"
-  },
-  {
-    id: "3.2",
-    name: "3.2 IVA",
-    description: "Documentazione IVA e liquidazioni periodiche",
-    tags: ["Tax", "IVA"],
-    lastModified: "1 week ago",
-    documentCount: 35,
-    userCount: 4,
-    role: "Contributor"
-  },
-  {
-    id: "3.3",
-    name: "3.3 Obblighi dei sostituti di imposta",
-    description: "Documentazione sostituti d'imposta e adempimenti",
-    tags: ["Tax", "Sostituti"],
-    lastModified: "1 week ago",
-    documentCount: 29,
-    userCount: 5,
-    role: "Viewer"
-  },
-  // 4. Business
-  {
-    id: "4.1",
-    name: "4.1 Informazioni generali",
-    description: "Informazioni generali sul business e operations",
-    tags: ["Business", "General"],
+    id: "business",
+    name: "Business",
+    description: "Informazioni business, clienti, fornitori e operations",
+    tags: ["Business"],
     lastModified: "4 days ago",
-    documentCount: 33,
-    userCount: 10,
+    documentCount: 84,
+    userCount: 15,
     role: "Creator"
-  },
-  {
-    id: "4.2",
-    name: "4.2 Financials, Clienti e Fornitori",
-    description: "Analisi finanziarie, portafoglio clienti e fornitori",
-    tags: ["Business", "Financials", "Clienti"],
-    lastModified: "5 days ago",
-    documentCount: 51,
-    userCount: 13,
-    role: "Editor"
   }
 ];
 
-const allTags = ["Financial", "General", "Income", "Balance", "Legal", "Company", "Shareholdings", "Real Estate", "Permits", "Insurance", "Contracts", "Tax", "IRES", "IRAP", "IVA", "Sostituti", "Business", "Financials", "Clienti"];
+const allTags = ["Financial", "Legal", "Tax", "Business"];
 
 export default function Dashboard() {
   const navigate = useNavigate();

@@ -21,13 +21,58 @@ import {
   Trash2
 } from "lucide-react";
 
-// Mock data for demonstration
-const mockDataRoom = {
-  id: "1",
-  name: "Q4 2024 Financial Review",
-  description: "Quarterly financial statements and analysis for board review",
-  tags: ["Finance", "Internal", "Quarterly"],
-  role: "Creator"
+// Mock data structure for each data room
+const dataRoomStructure = {
+  financial: {
+    id: "financial",
+    name: "Financial", 
+    description: "Documenti finanziari, bilanci e analisi economiche",
+    tags: ["Financial"],
+    role: "Creator",
+    subfolders: [
+      { id: "1.1", name: "1.1 General Information", documentCount: 15 },
+      { id: "1.2", name: "1.2 Income Statement", documentCount: 22 },
+      { id: "1.3", name: "1.3 Balance Sheet", documentCount: 18 }
+    ]
+  },
+  legal: {
+    id: "legal",
+    name: "Legal",
+    description: "Documenti legali, contratti e adempimenti normativi", 
+    tags: ["Legal"],
+    role: "Editor",
+    subfolders: [
+      { id: "2.1", name: "2.1 Company Data", documentCount: 32 },
+      { id: "2.2", name: "2.2 Shareholdings", documentCount: 28 },
+      { id: "2.3", name: "2.3 Real Estate Properties", documentCount: 45 },
+      { id: "2.4", name: "2.4 Permits, Authorizations, Licenses and Concessions", documentCount: 67 },
+      { id: "2.5", name: "2.5 Insurance", documentCount: 24 },
+      { id: "2.6", name: "2.6 Financial Contracts", documentCount: 38 }
+    ]
+  },
+  tax: {
+    id: "tax", 
+    name: "Tax",
+    description: "Documentazione fiscale e adempimenti tributari",
+    tags: ["Tax"],
+    role: "Contributor",
+    subfolders: [
+      { id: "3.1", name: "3.1 IRES e IRAP", documentCount: 42 },
+      { id: "3.2", name: "3.2 IVA", documentCount: 35 },
+      { id: "3.3", name: "3.3 Obblighi dei sostituti di imposta", documentCount: 29 }
+    ]
+  },
+  business: {
+    id: "business",
+    name: "Business", 
+    description: "Informazioni business, clienti, fornitori e operations",
+    tags: ["Business"],
+    role: "Creator",
+    subfolders: [
+      { id: "4.1", name: "4.1 Informazioni generali", documentCount: 33 },
+      { id: "4.2", name: "4.2 Financials, Clienti e Fornitori", documentCount: 51 }
+    ]
+  }
 };
 
 const mockDocuments = [
@@ -38,25 +83,25 @@ const mockDocuments = [
     size: "2.4 MB",
     uploadedBy: "Sarah Johnson",
     uploadedAt: "2 hours ago",
-    folder: "Financial Reports"
+    folder: "1.1"
   },
   {
     id: "2", 
-    name: "Revenue_Analysis.xlsx",
+    name: "Income_Analysis.xlsx",
     type: "Excel",
     size: "1.8 MB",
     uploadedBy: "Mike Chen",
     uploadedAt: "5 hours ago",
-    folder: "Analysis"
+    folder: "1.2"
   },
   {
     id: "3",
-    name: "Board_Presentation.pptx",
-    type: "PowerPoint",
-    size: "5.2 MB",
+    name: "Balance_Sheet_2024.pdf",
+    type: "PDF",
+    size: "3.2 MB",
     uploadedBy: "Sarah Johnson",
     uploadedAt: "Yesterday",
-    folder: "Presentations"
+    folder: "1.3"
   }
 ];
 
@@ -65,15 +110,24 @@ export default function DataRoom() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [aiQuery, setAiQuery] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+
+  // Get current data room based on ID
+  const currentDataRoom = id ? dataRoomStructure[id as keyof typeof dataRoomStructure] : null;
+  
+  if (!currentDataRoom) {
+    return <div>Data Room not found</div>;
+  }
 
   const breadcrumbs = [
     { label: "Data Room", href: "/" },
     { label: "Settings" },
-    { label: mockDataRoom.name }
+    { label: currentDataRoom.name }
   ];
 
   const filteredDocuments = mockDocuments.filter(doc =>
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+    doc.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (!selectedFolder || doc.folder === selectedFolder)
   );
 
   const handleAiQuery = (e: React.FormEvent) => {
@@ -92,14 +146,14 @@ export default function DataRoom() {
         <div className="flex items-start justify-between mb-8">
           <div className="space-y-2">
             <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-foreground">{mockDataRoom.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground">{currentDataRoom.name}</h1>
               <Badge className="bg-primary/10 text-primary border-primary/20">
-                {mockDataRoom.role}
+                {currentDataRoom.role}
               </Badge>
             </div>
-            <p className="text-muted-foreground">{mockDataRoom.description}</p>
+            <p className="text-muted-foreground">{currentDataRoom.description}</p>
             <div className="flex space-x-2">
-              {mockDataRoom.tags.map((tag) => (
+              {currentDataRoom.tags.map((tag) => (
                 <Badge key={tag} variant="secondary">
                   {tag}
                 </Badge>
@@ -149,12 +203,49 @@ export default function DataRoom() {
               </Button>
             </div>
 
+            {/* Subfolders */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {currentDataRoom.subfolders.map((subfolder) => (
+                <Card 
+                  key={subfolder.id} 
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    selectedFolder === subfolder.id ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => setSelectedFolder(selectedFolder === subfolder.id ? null : subfolder.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Folder className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-foreground">{subfolder.name}</h3>
+                        <p className="text-sm text-muted-foreground">{subfolder.documentCount} documents</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
             {/* Documents List */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Folder className="w-5 h-5" />
-                  <span>Documents ({filteredDocuments.length})</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Folder className="w-5 h-5" />
+                    <span>
+                      {selectedFolder 
+                        ? `Documents in ${currentDataRoom.subfolders.find(f => f.id === selectedFolder)?.name}`
+                        : `All Documents (${filteredDocuments.length})`
+                      }
+                    </span>
+                  </div>
+                  {selectedFolder && (
+                    <Button variant="ghost" onClick={() => setSelectedFolder(null)}>
+                      Show All
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -183,7 +274,7 @@ export default function DataRoom() {
                         <Button variant="ghost" size="sm">
                           <Download className="w-4 h-4" />
                         </Button>
-                        {mockDataRoom.role !== "Viewer" && (
+                        {currentDataRoom.role !== "Viewer" && (
                           <>
                             <Button variant="ghost" size="sm">
                               <Edit3 className="w-4 h-4" />
