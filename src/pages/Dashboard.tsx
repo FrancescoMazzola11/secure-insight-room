@@ -1,0 +1,200 @@
+import { useState } from "react";
+import { Header } from "@/components/layout/Header";
+import { DataRoomCard, type DataRoom } from "@/components/dashboard/DataRoomCard";
+import { CreateDataRoomDialog } from "@/components/dashboard/CreateDataRoomDialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Search, Filter } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+// Mock data
+const initialDataRooms: DataRoom[] = [
+  {
+    id: "1",
+    name: "Q4 2024 Financial Review",
+    description: "Quarterly financial statements and analysis for board review",
+    tags: ["Finance", "Internal", "Quarterly"],
+    lastModified: "2 hours ago",
+    documentCount: 24,
+    userCount: 8,
+    role: "Creator"
+  },
+  {
+    id: "2", 
+    name: "Merger & Acquisition Due Diligence",
+    description: "Due diligence materials for potential acquisition of TechCorp",
+    tags: ["Legal", "Due Diligence", "External"],
+    lastModified: "Yesterday",
+    documentCount: 156,
+    userCount: 12,
+    role: "Editor"
+  },
+  {
+    id: "3",
+    name: "HR Policy Updates 2024",
+    description: "Updated employee handbook and policy documentation",
+    tags: ["HR", "Internal", "Compliance"],
+    lastModified: "3 days ago",
+    documentCount: 18,
+    userCount: 5,
+    role: "Contributor"
+  },
+  {
+    id: "4",
+    name: "Audit Documentation",
+    description: "Annual audit supporting documents and evidence",
+    tags: ["Finance", "Compliance", "External"],
+    lastModified: "1 week ago",
+    documentCount: 89,
+    userCount: 6,
+    role: "Viewer"
+  }
+];
+
+const allTags = ["Finance", "Legal", "Due Diligence", "Internal", "External", "HR", "Compliance", "Quarterly"];
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [dataRooms, setDataRooms] = useState<DataRoom[]>(initialDataRooms);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const filteredDataRooms = dataRooms.filter((room) => {
+    const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         room.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = selectedTag === "all" || room.tags.includes(selectedTag);
+    return matchesSearch && matchesTag;
+  });
+
+  const handleCreateDataRoom = (data: { name: string; description: string; tags: string[] }) => {
+    const newRoom: DataRoom = {
+      id: Date.now().toString(),
+      name: data.name,
+      description: data.description,
+      tags: data.tags,
+      lastModified: "Just now",
+      documentCount: 0,
+      userCount: 1,
+      role: "Creator"
+    };
+    setDataRooms([newRoom, ...dataRooms]);
+  };
+
+  const handleOpenDataRoom = (id: string) => {
+    navigate(`/data-room/${id}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Data Rooms</h1>
+            <p className="text-muted-foreground mt-1">
+              Secure document sharing and collaboration spaces
+            </p>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)} className="shadow-md">
+            <Plus className="w-4 h-4 mr-2" />
+            Create Data Room
+          </Button>
+        </div>
+
+        {/* Filters Section */}
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search data rooms..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={selectedTag} onValueChange={setSelectedTag}>
+            <SelectTrigger className="w-48">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Filter by tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tags</SelectItem>
+              {allTags.map((tag) => (
+                <SelectItem key={tag} value={tag}>
+                  {tag}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Active Filters */}
+        {(searchQuery || selectedTag !== "all") && (
+          <div className="flex items-center space-x-2 mb-6">
+            <span className="text-sm text-muted-foreground">Active filters:</span>
+            {searchQuery && (
+              <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchQuery("")}>
+                Search: "{searchQuery}" ×
+              </Badge>
+            )}
+            {selectedTag !== "all" && (
+              <Badge variant="secondary" className="cursor-pointer" onClick={() => setSelectedTag("all")}>
+                Tag: {selectedTag} ×
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Data Rooms Grid */}
+        {filteredDataRooms.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredDataRooms.map((dataRoom) => (
+              <DataRoomCard 
+                key={dataRoom.id} 
+                dataRoom={dataRoom} 
+                onOpen={handleOpenDataRoom}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-2">No data rooms found</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery || selectedTag !== "all" 
+                ? "Try adjusting your search or filter criteria"
+                : "Create your first data room to get started"
+              }
+            </p>
+            {!searchQuery && selectedTag === "all" && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Data Room
+              </Button>
+            )}
+          </div>
+        )}
+      </main>
+
+      <CreateDataRoomDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSubmit={handleCreateDataRoom}
+      />
+    </div>
+  );
+}
