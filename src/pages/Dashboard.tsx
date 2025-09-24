@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { DataRoomCard, type DataRoom } from "@/components/dashboard/DataRoomCard";
 import { CreateDataRoomDialog } from "@/components/dashboard/CreateDataRoomDialog";
@@ -12,61 +12,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Mock data - 4 main data rooms
-const initialDataRooms: DataRoom[] = [
+// Mock data fallback
+const mockDataRooms: DataRoom[] = [
   {
     id: "financial",
-    name: "Financial",
-    description: "Documenti finanziari, bilanci e analisi economiche",
-    tags: ["Financial"],
+    name: "Financial Documents",
+    description: "Financial statements, budgets, and economic analyses",
+    tags: ["Financial", "Due Diligence"],
     lastModified: "2 hours ago",
-    documentCount: 55,
-    userCount: 12,
+    documentCount: 3,
+    userCount: 5,
     role: "Creator"
   },
   {
     id: "legal",
-    name: "Legal",
-    description: "Documenti legali, contratti e adempimenti normativi",
-    tags: ["Legal"],
+    name: "Legal Documents",
+    description: "Legal contracts, compliance documents, and regulatory filings",
+    tags: ["Legal", "Compliance"],
     lastModified: "Yesterday",
-    documentCount: 234,
-    userCount: 18,
+    documentCount: 2,
+    userCount: 3,
     role: "Editor"
   },
   {
-    id: "tax",
-    name: "Tax",
-    description: "Documentazione fiscale e adempimenti tributari",
-    tags: ["Tax"],
-    lastModified: "1 week ago",
-    documentCount: 106,
-    userCount: 8,
-    role: "Contributor"
-  },
-  {
     id: "business",
-    name: "Business",
-    description: "Informazioni business, clienti, fornitori e operations",
-    tags: ["Business"],
+    name: "Business Operations",
+    description: "Business plans, client information, and operational documents",
+    tags: ["Business", "HR"],
     lastModified: "4 days ago",
-    documentCount: 84,
-    userCount: 15,
+    documentCount: 2,
+    userCount: 2,
     role: "Creator"
   }
 ];
 
-const allTags = ["Financial", "Legal", "Tax", "Business"];
+const mockTags = ["Financial", "Legal", "Business", "Due Diligence", "Compliance", "HR"];
+
+// Helper function to format dates
+function formatLastModified(date: Date): string {
+  const now = new Date();
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  
+  if (diffInHours < 1) return "Just now";
+  if (diffInHours === 1) return "1 hour ago";
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) return "Yesterday";
+  if (diffInDays < 7) return `${diffInDays} days ago`;
+  
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks === 1) return "1 week ago";
+  if (diffInWeeks < 4) return `${diffInWeeks} weeks ago`;
+  
+  return date.toLocaleDateString();
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [dataRooms, setDataRooms] = useState<DataRoom[]>(initialDataRooms);
+  const [dataRooms, setDataRooms] = useState<DataRoom[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // For now, we'll use a hardcoded user ID. In a real app, this would come from authentication
+  const currentUserId = "user-1"; // John Doe
+
+  // Load data on component mount
+  useEffect(() => {
+    async function loadData() {
+      // Use mock data only (database operations moved to API)
+      console.log('Loading mock data...');
+      setDataRooms(mockDataRooms);
+      setAllTags(mockTags);
+      setLoading(false);
+    }
+    
+    loadData();
+  }, [currentUserId]);
 
   const filteredDataRooms = dataRooms.filter((room) => {
     const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -75,23 +104,61 @@ export default function Dashboard() {
     return matchesSearch && matchesTag;
   });
 
-  const handleCreateDataRoom = (data: { name: string; description: string; tags: string[] }) => {
-    const newRoom: DataRoom = {
-      id: Date.now().toString(),
-      name: data.name,
-      description: data.description,
-      tags: data.tags,
-      lastModified: "Just now",
-      documentCount: 0,
-      userCount: 1,
-      role: "Creator"
-    };
-    setDataRooms([newRoom, ...dataRooms]);
+  const handleCreateDataRoom = async (data: { name: string; description: string; tags: string[] }) => {
+    try {
+      // Add to mock data
+      const newRoom: DataRoom = {
+        id: Date.now().toString(),
+        name: data.name,
+        description: data.description,
+        tags: data.tags,
+        lastModified: "Just now",
+        documentCount: 0,
+        userCount: 1,
+        role: "Creator"
+      };
+      setDataRooms([newRoom, ...dataRooms]);
+      
+    } catch (err) {
+      console.error('Error creating data room:', err);
+      // Don't show error to user, just log it
+      console.log('Continuing with mock data behavior');
+    }
   };
 
   const handleOpenDataRoom = (id: string) => {
     navigate(`/data-room/${id}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading data rooms...</span>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-red-600 mb-2">{error}</div>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
