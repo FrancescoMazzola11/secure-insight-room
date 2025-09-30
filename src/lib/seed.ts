@@ -28,7 +28,7 @@ export async function seedDatabase() {
 
     const financialTag = await findOrCreateTag('Financial', '#10B981');
     const legalTag = await findOrCreateTag('Legal', '#3B82F6');
-    const taxTag = await findOrCreateTag('Tax', '#F59E0B');
+    const taxTag = await findOrCreateTag('Tax', '#ca912eff');
     const businessTag = await findOrCreateTag('Business', '#8B5CF6');
 
     // Create data rooms
