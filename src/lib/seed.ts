@@ -1,38 +1,35 @@
 import { db } from './database';
 import { users, dataRooms, tags, dataRoomTags, folders, files, userDataRoomPermissions } from './schema';
+import { eq } from 'drizzle-orm';
 
 export async function seedDatabase() {
   try {
     console.log('Seeding database...');
 
-    // Create a test user
-    const [testUser] = await db.insert(users).values({
-      id: 'temp-user-id',
-      email: 'test@example.com',
-      name: 'Test User',
-      passwordHash: 'hashed_password_here',
-    }).returning();
 
-    // Create tags
-    const [financialTag] = await db.insert(tags).values({
-      name: 'Financial',
-      color: '#10B981',
-    }).returning();
+    // Create a test user only if not exist
+    async function findOrCreateUser(id: string, email: string, name: string, passwordHash: string) {
+  const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (existing.length > 0) return existing[0];
+      const [created] = await db.insert(users).values({ id, email, name, passwordHash }).returning();
+      return created;
+    }
 
-    const [legalTag] = await db.insert(tags).values({
-      name: 'Legal', 
-      color: '#3B82F6',
-    }).returning();
+    const testUser = await findOrCreateUser('temp-user-id', 'test@example.com', 'Test User', 'hashed_password_here');
 
-    const [taxTag] = await db.insert(tags).values({
-      name: 'Tax',
-      color: '#F59E0B',
-    }).returning();
 
-    const [businessTag] = await db.insert(tags).values({
-      name: 'Business',
-      color: '#8B5CF6',
-    }).returning();
+    // Create tags only if not exist
+    async function findOrCreateTag(name: string, color: string) {
+  const existing = await db.select().from(tags).where(eq(tags.name, name)).limit(1);
+      if (existing.length > 0) return existing[0];
+      const [created] = await db.insert(tags).values({ name, color }).returning();
+      return created;
+    }
+
+    const financialTag = await findOrCreateTag('Financial', '#10B981');
+    const legalTag = await findOrCreateTag('Legal', '#3B82F6');
+    const taxTag = await findOrCreateTag('Tax', '#F59E0B');
+    const businessTag = await findOrCreateTag('Business', '#8B5CF6');
 
     // Create data rooms
     const [financialRoom] = await db.insert(dataRooms).values({
